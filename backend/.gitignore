@@ -1,0 +1,17 @@
+# Python virtual environment
+backend/venv/
+
+# Python cache files
+__pycache__/
+backend/__pycache__/
+
+# Temporary upload folder
+backend/uploads/
+
+# Environment variables file (NEVER commit this)
+.env
+backend/.env
+
+# OS-specific files
+.DS_Store
+Thumbs.db

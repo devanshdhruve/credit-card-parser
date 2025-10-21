@@ -1,0 +1,9 @@
+# --- Web Framework & Server ---
+Flask
+waitress
+
+# --- PDF Parsing ---
+pdfplumber
+
+# --- Utilities ---
+python-dotenv
