@@ -1,9 +1,4 @@
-# --- Web Framework & Server ---
-Flask
-waitress
-
-# --- PDF Parsing ---
+flask
+flask-cors
 pdfplumber
-
-# --- Utilities ---
-python-dotenv
+waitress

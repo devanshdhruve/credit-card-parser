@@ -19,7 +19,7 @@ from parser_engine.citi_parser import parse_citi
 from parser_engine.visa_parser import parse_visa
 
 # --- Flask setup ---
-app = Flask(__name__)
+app = Flask(__name__, static_folder="frontend", static_url_path="")
 CORS(app)
 
 UPLOAD_FOLDER = "uploads"
@@ -38,13 +38,13 @@ PARSERS = {
 
 
 # Serve frontend files
-@app.route('/')
+@app.route("/")
 def serve_index():
-    return send_from_directory('frontend', 'index.html')
+    return send_from_directory("frontend", "index.html")
 
-@app.route('/<path:path>')
+@app.route("/<path:path>")
 def serve_static(path):
-    return send_from_directory('frontend', path)
+    return send_from_directory("frontend", path)
 
 
 @app.route("/upload", methods=["POST"])
@@ -104,7 +104,8 @@ def upload_pdf():
             print("🧹 Cleaned up uploaded file")
 
 
+# Railway Deployment Entry Point
 if __name__ == "__main__":
-    print("🚀 Backend running at http://127.0.0.1:8080")
-    print("📱 Open http://127.0.0.1:8080 in your browser")
-    app.run(host="127.0.0.1", port=8080, debug=True)
+    port = int(os.environ.get("PORT", 8080))  
+    print(f"🚀 Running on 0.0.0.0:{port}")
+    app.run(host="0.0.0.0", port=port)
