@@ -50,7 +50,7 @@ uploadBtn.addEventListener("click", async () => {
   btnText.innerHTML = '<span class="spinner"></span>Analyzing...';
 
   try {
-    const response = await fetch("http://127.0.0.1:8080/upload", {
+    const response = await fetch("/upload", {
       method: "POST",
       body: formData,
     });
