@@ -1,6 +1,10 @@
 import os
+import sys
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+
+# --- Add backend folder to sys.path ---
+sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 
 # --- Import parsing engine ---
 from parser_engine.base_parser import (
@@ -19,10 +23,10 @@ from parser_engine.citi_parser import parse_citi
 from parser_engine.visa_parser import parse_visa
 
 # --- Flask setup ---
-app = Flask(__name__, static_folder="frontend", static_url_path="")
+app = Flask(__name__, static_folder="backend/frontend", static_url_path="")
 CORS(app)
 
-UPLOAD_FOLDER = "uploads"
+UPLOAD_FOLDER = os.path.join("backend", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
@@ -37,31 +41,29 @@ PARSERS = {
 }
 
 
-# Serve frontend files
+# --- Serve frontend files ---
 @app.route("/")
 def serve_index():
-    return send_from_directory("frontend", "index.html")
+    return send_from_directory("backend/frontend", "index.html")
 
 @app.route("/<path:path>")
 def serve_static(path):
-    return send_from_directory("frontend", path)
+    return send_from_directory("backend/frontend", path)
 
 
+# --- Upload & Parse ---
 @app.route("/upload", methods=["POST"])
 def upload_pdf():
     print("📩 Received upload request")
 
     if "pdf" not in request.files:
-        print("❌ Missing file field 'pdf'")
         return jsonify({"error": "Missing file field 'pdf'"}), 400
 
     file = request.files["pdf"]
     if file.filename == "":
-        print("❌ No file selected")
         return jsonify({"error": "No file selected"}), 400
 
     if not file.filename.lower().endswith(".pdf"):
-        print("❌ Invalid file type")
         return jsonify({"error": "Invalid file type (only .pdf allowed)"}), 400
 
     temp_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
@@ -104,8 +106,8 @@ def upload_pdf():
             print("🧹 Cleaned up uploaded file")
 
 
-# Railway Deployment Entry Point
+# --- Railway Deployment Entry Point ---
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))  
+    port = int(os.environ.get("PORT", 8080))
     print(f"🚀 Running on 0.0.0.0:{port}")
     app.run(host="0.0.0.0", port=port)
