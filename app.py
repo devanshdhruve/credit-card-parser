@@ -7,7 +7,7 @@ from flask_cors import CORS
 sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 
 # --- Import parsing engine ---
-from parser_engine.base_parser import (
+from backend.parser_engine.base_parser import (
     extract_text_from_pdf,
     identify_bank,
     find_last4,
@@ -16,17 +16,17 @@ from parser_engine.base_parser import (
     find_billing_cycle,
     extract_transactions_from_text,
 )
-from parser_engine.hdfc_parser import parse_hdfc
-from parser_engine.icici_parser import parse_icici
-from parser_engine.idfc_parser import parse_idfc
-from parser_engine.citi_parser import parse_citi
-from parser_engine.visa_parser import parse_visa
+from backend.parser_engine.hdfc_parser import parse_hdfc
+from backend.parser_engine.icici_parser import parse_icici
+from backend.parser_engine.idfc_parser import parse_idfc
+from backend.parser_engine.citi_parser import parse_citi
+from backend.parser_engine.visa_parser import parse_visa
 
 # --- Flask setup ---
-app = Flask(__name__, static_folder="backend/frontend", static_url_path="")
+app = Flask(__name__, static_folder="frontend", static_url_path="")
 CORS(app)
 
-UPLOAD_FOLDER = os.path.join("backend", "uploads")
+UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
@@ -40,16 +40,14 @@ PARSERS = {
     "UNKNOWN": None,
 }
 
-
 # --- Serve frontend files ---
 @app.route("/")
 def serve_index():
-    return send_from_directory("backend/frontend", "index.html")
+    return send_from_directory("frontend", "index.html")
 
 @app.route("/<path:path>")
 def serve_static(path):
-    return send_from_directory("backend/frontend", path)
-
+    return send_from_directory("frontend", path)
 
 # --- Upload & Parse ---
 @app.route("/upload", methods=["POST"])
