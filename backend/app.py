@@ -66,19 +66,21 @@ def upload_pdf():
         text = extract_text_from_pdf(temp_path)
         bank = identify_bank(text)
 
-        # 4️⃣ Call bank-specific parser
+        # --- 4️⃣ Call bank-specific parser ---
         parser = PARSERS.get(bank)
         if parser:
-            parsed_data = parser(text)
+            # Pass both text and file path for advanced parsers
+            parsed_data = parser(text, temp_path)
         else:
-            # Fallback: use generic parsing if bank unknown
+            # Fallback generic parsing
             parsed_data = {
-                "last_4_digits": find_last4(text),
-                "total_balance": find_total_balance(text),
-                "payment_due_date": find_payment_due_date(text),
-                "billing_cycle": find_billing_cycle(text),
-                "transactions": extract_transactions_from_text(text),
-            }
+            "last_4_digits": find_last4(text),
+            "total_balance": find_total_balance(text),
+            "payment_due_date": find_payment_due_date(text),
+            "billing_cycle": find_billing_cycle(text),
+            "transactions": extract_transactions_from_text(text),
+        }
+
 
         # 5️⃣ Prepare the response
         response = {
