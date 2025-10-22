@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Credit Card Statement Parser</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>Credit<span>Parse</span></h1>
+      <p class="tagline">AI-powered Credit Card Statement Analyzer</p>
+    </header>
+
+    <main>
+      <section class="upload-card" id="uploadBox">
+        <input type="file" id="pdfFile" accept="application/pdf" hidden />
+        <label for="pdfFile" class="upload-label">
+          <i class="icon">📂</i>
+          <p>Click or drag your <strong>PDF</strong> here to upload</p>
+        </label>
+        <p id="fileName" class="file-name"></p>
+        <button id="uploadBtn" class="primary-btn">
+          <span id="btnText">Upload & Analyze</span>
+        </button>
+      </section>
+
+      <section id="result" class="result hidden">
+        <div class="summary">
+          <h2>Statement Summary</h2>
+          <div class="summary-grid" id="summaryGrid"></div>
+        </div>
+
+        <div class="transactions">
+          <div class="transactions-header">
+            <h2>Transactions</h2>
+            <span id="transactionCount" class="badge">0</span>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody id="transactionsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

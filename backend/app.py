@@ -1,8 +1,8 @@
 import os
-from flask import Flask, request, jsonify
-from waitress import serve
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
 
-# --- Import our parsing engine ---
+# --- Import parsing engine ---
 from parser_engine.base_parser import (
     extract_text_from_pdf,
     identify_bank,
@@ -18,16 +18,15 @@ from parser_engine.idfc_parser import parse_idfc
 from parser_engine.citi_parser import parse_citi
 from parser_engine.visa_parser import parse_visa
 
-
-# --- Flask app setup ---
+# --- Flask setup ---
 app = Flask(__name__)
+CORS(app)
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-
-# --- Bank parsers mapping ---
+# --- Bank parser map ---
 PARSERS = {
     "HDFC": parse_hdfc,
     "ICICI": parse_icici,
@@ -38,80 +37,74 @@ PARSERS = {
 }
 
 
+# Serve frontend files
+@app.route('/')
+def serve_index():
+    return send_from_directory('frontend', 'index.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory('frontend', path)
+
+
 @app.route("/upload", methods=["POST"])
 def upload_pdf():
-    """
-    Upload a credit card statement (PDF), auto-detect the bank,
-    parse key details, and return structured data.
-    """
+    print("📩 Received upload request")
 
-    # 1️⃣ Validate the file
     if "pdf" not in request.files:
+        print("❌ Missing file field 'pdf'")
         return jsonify({"error": "Missing file field 'pdf'"}), 400
 
     file = request.files["pdf"]
-
     if file.filename == "":
+        print("❌ No file selected")
         return jsonify({"error": "No file selected"}), 400
 
     if not file.filename.lower().endswith(".pdf"):
+        print("❌ Invalid file type")
         return jsonify({"error": "Invalid file type (only .pdf allowed)"}), 400
 
-    # 2️⃣ Save temporarily
     temp_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
     file.save(temp_path)
+    print(f"📂 Saved file to {temp_path}")
 
     try:
-        # 3️⃣ Extract text & identify bank
         text = extract_text_from_pdf(temp_path)
         bank = identify_bank(text)
+        print(f"🏦 Detected Bank: {bank}")
 
-        # --- 4️⃣ Call bank-specific parser ---
         parser = PARSERS.get(bank)
         if parser:
-            # Pass both text and file path for advanced parsers
             parsed_data = parser(text, temp_path)
         else:
-            # Fallback generic parsing
             parsed_data = {
-            "last_4_digits": find_last4(text),
-            "total_balance": find_total_balance(text),
-            "payment_due_date": find_payment_due_date(text),
-            "billing_cycle": find_billing_cycle(text),
-            "transactions": extract_transactions_from_text(text),
-        }
+                "last_4_digits": find_last4(text),
+                "total_balance": find_total_balance(text),
+                "payment_due_date": find_payment_due_date(text),
+                "billing_cycle": find_billing_cycle(text),
+                "transactions": extract_transactions_from_text(text),
+            }
 
-
-        # 5️⃣ Prepare the response
         response = {
             "filename": file.filename,
             "detected_bank": bank,
             "extracted_data": parsed_data,
         }
 
+        print("✅ Successfully parsed PDF")
         return jsonify(response), 200
 
     except Exception as e:
-        return jsonify({"error": f"An error occurred while processing the file: {str(e)}"}), 500
+        print("❌ Error:", e)
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
     finally:
-        # 6️⃣ Always clean up
         if os.path.exists(temp_path):
             os.remove(temp_path)
+            print("🧹 Cleaned up uploaded file")
 
 
-@app.route("/", methods=["GET"])
-def index():
-    """Simple health-check route."""
-    return jsonify({
-        "message": "Credit Card Statement Parser API is running",
-        "upload_endpoint": "/upload",
-        "method": "POST",
-        "field": "pdf",
-    })
-
-
-# --- Run the server ---
 if __name__ == "__main__":
-    print("🚀 Starting backend server on http://localhost:8080 ...")
-    serve(app, host="0.0.0.0", port=8080)
+    print("🚀 Backend running at http://127.0.0.1:8080")
+    print("📱 Open http://127.0.0.1:8080 in your browser")
+    app.run(host="127.0.0.1", port=8080, debug=True)
